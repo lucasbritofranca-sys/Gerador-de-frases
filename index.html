@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3eee5">
+  <title>Vai dar. Talvez. — Gerador de frases</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f3eee5;
+      --ink: #20241f;
+      --muted: #70756d;
+      --line: #d5d0c5;
+      --acid: #d7f05b;
+      --coral: #ed7358;
+      --serif: Georgia, "Times New Roman", serif;
+      --sans: "Trebuchet MS", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background-color: var(--paper);
+      background-image: radial-gradient(#b8b2a6 0.65px, transparent 0.65px);
+      background-size: 8px 8px;
+      font-family: var(--sans);
+    }
+
+    button, select { font: inherit; }
+
+    .page {
+      width: min(100% - 48px, 1120px);
+      min-height: 100vh;
+      margin-inline: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      min-height: 86px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 32px;
+      aspect-ratio: 1;
+      place-items: center;
+      border: 1px solid var(--ink);
+      border-radius: 50%;
+      font-family: var(--serif);
+      font-size: 19px;
+    }
+
+    .top-note, .eyebrow, .quote-label, .footer-note {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .top-note { color: var(--muted); }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
+      align-items: center;
+      gap: clamp(48px, 9vw, 130px);
+      padding-block: 72px;
+    }
+
+    .intro { max-width: 430px; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 24px;
+      color: #52594d;
+    }
+
+    .eyebrow::before {
+      width: 22px;
+      height: 2px;
+      background: var(--coral);
+      content: "";
+    }
+
+    h1 {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(52px, 7.1vw, 88px);
+      font-weight: 500;
+      line-height: 0.94;
+    }
+
+    h1 span { font-style: italic; }
+
+    .intro-copy {
+      max-width: 340px;
+      margin: 26px 0 0;
+      color: #55594f;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .intro-copy strong { color: var(--ink); }
+
+    .generator { width: 100%; }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    select {
+      min-width: 155px;
+      padding: 10px 30px 10px 12px;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      background: #faf7f0;
+      cursor: pointer;
+    }
+
+    .quote-card {
+      position: relative;
+      min-height: 330px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: clamp(26px, 4vw, 42px);
+      overflow: hidden;
+      background: var(--acid);
+      animation: arrive 380ms ease both;
+    }
+
+    .quote-card::after {
+      position: absolute;
+      right: -42px;
+      bottom: -72px;
+      width: 190px;
+      aspect-ratio: 1;
+      border: 1px solid rgb(32 36 31 / 18%);
+      border-radius: 50%;
+      box-shadow: 0 0 0 16px rgb(32 36 31 / 4%), 0 0 0 32px rgb(32 36 31 / 4%);
+      content: "";
+      pointer-events: none;
+    }
+
+    .quote-label { display: flex; justify-content: space-between; }
+
+    .quote-text {
+      position: relative;
+      z-index: 1;
+      max-width: 540px;
+      margin: 30px 0 34px;
+      font-family: var(--serif);
+      font-size: clamp(31px, 4vw, 46px);
+      line-height: 1.12;
+    }
+
+    .quote-actions {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .action-group { display: flex; gap: 8px; }
+
+    .icon-button, .generate-button {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      border: 1px solid var(--ink);
+      border-radius: 2px;
+      color: var(--ink);
+      background: transparent;
+      cursor: pointer;
+      transition: background-color 140ms ease, transform 140ms ease;
+    }
+
+    .icon-button { width: 44px; }
+    .generate-button { padding: 0 16px; background: var(--ink); color: white; font-size: 12px; font-weight: 700; }
+    .icon-button:hover, .generate-button:hover { transform: translateY(-2px); }
+    .icon-button:hover { background: rgb(255 255 255 / 30%); }
+    .generate-button:hover { background: #3b4138; }
+    button:focus-visible, select:focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; }
+
+    .below-card {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding-top: 14px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    #favorite-count { color: var(--ink); font-weight: 700; }
+    .toast { min-height: 16px; text-align: right; }
+
+    .saved-list { margin-top: 14px; border-top: 1px solid var(--line); font-size: 12px; }
+    .saved-list summary { padding: 12px 0; color: var(--ink); cursor: pointer; font-weight: 700; }
+    .saved-list ul { display: grid; gap: 10px; margin: 0; padding: 0 0 14px 18px; }
+    .saved-list li { padding-left: 3px; line-height: 1.5; }
+    .saved-category { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+
+    footer {
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+    }
+
+    .footer-note { font-size: 9px; }
+
+    @keyframes arrive {
+      from { opacity: 0.45; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 760px) {
+      .page { width: min(100% - 32px, 560px); }
+      header { min-height: 68px; }
+      main { grid-template-columns: 1fr; gap: 36px; padding-block: 48px; }
+      h1 { font-size: clamp(56px, 14vw, 78px); }
+      .intro-copy { margin-top: 18px; }
+      .quote-card { min-height: 310px; }
+    }
+
+    @media (max-width: 420px) {
+      .top-note { max-width: 110px; text-align: right; line-height: 1.4; }
+      .controls { align-items: flex-start; flex-direction: column; }
+      select { width: 100%; }
+      .quote-card { min-height: 320px; padding: 24px; }
+      .quote-text { font-size: 34px; }
+      .generate-button { padding-inline: 12px; }
+      footer { align-items: flex-start; flex-direction: column; justify-content: center; padding-block: 14px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <a class="brand" href="./" aria-label="Vai dar. Talvez. Página inicial">
+        <span class="brand-mark" aria-hidden="true">v.</span>
+        <span>VAI DAR. TALVEZ.</span>
+      </a>
+      <span class="top-note">Motivação sem promessas falsas</span>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">Seu empurrãozinho nada gentil</p>
+        <h1 id="page-title">Vai dar.<br><span>Talvez.</span></h1>
+        <p class="intro-copy">Uma dose de ânimo com os dois pés no chão e <strong>zero papo de coach</strong>. Escolha seu caos do dia.</p>
+      </section>
+
+      <section class="generator" aria-label="Gerador de frases">
+        <div class="controls">
+          <label for="category">QUAL É O SEU CAOS?</label>
+          <select id="category">
+            <option value="all">Um pouco de tudo</option>
+            <option value="trabalho">Trabalho & boletos</option>
+            <option value="autocuidado">Autocuidado realista</option>
+            <option value="segunda">Sobreviver à semana</option>
+            <option value="coragem">Coragem duvidosa</option>
+          </select>
+        </div>
+
+        <article class="quote-card" aria-live="polite" aria-atomic="true">
+          <div class="quote-label"><span>LEMBRETE DO UNIVERSO</span><span id="quote-number">#01</span></div>
+          <p class="quote-text" id="quote">Você não precisa ter tudo sob controle. Olha só: ninguém tem.</p>
+          <div class="quote-actions">
+            <div class="action-group">
+              <button class="icon-button" id="favorite" type="button" aria-label="Salvar frase" aria-pressed="false" title="Salvar frase">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="icon-button" id="copy" type="button" aria-label="Copiar frase" title="Copiar frase">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="1.5" stroke="currentColor" stroke-width="1.7"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v10A1.5 1.5 0 0 0 5.5 17H8" stroke="currentColor" stroke-width="1.7"/></svg>
+              </button>
+            </div>
+            <button class="generate-button" id="generate" type="button">
+              <span>Outra, por favor</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5m-3.5-3A7 7 0 0 1 18 7l2 5M4 12l2 5a7 7 0 0 0 12.5 1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </article>
+        <div class="below-card">
+          <span><span id="favorite-count">0</span> frases salvas</span>
+          <span class="toast" id="status" role="status" aria-live="polite"></span>
+        </div>
+        <details class="saved-list">
+          <summary>Consultar frases salvas</summary>
+          <ul id="saved-items"></ul>
+        </details>
+      </section>
+    </main>
+
+    <footer>
+      <span class="footer-note">Feito para dias úteis e crises existenciais leves.</span>
+      <span class="footer-note">Respire. Reclame. Continue.</span>
+    </footer>
+  </div>
+
+  <script>
+    const phrases = {
+      trabalho: [
+        "Você não precisa amar seu trabalho. O aluguel também não te ama e ainda assim vence todo mês.",
+        "Um e-mail por vez. O apocalipse corporativo pode esperar sua pausa pro café.",
+        "Faça o seu melhor hoje. Se não der, faça o aceitável com uma planilha bonita.",
+        "Sua caixa de entrada não é uma medida do seu valor. É só um monte de gente apertando responder a todos.",
+        "Você dá conta. E, se não der, documente o processo e chame de alinhamento.",
+        "O boleto não vai se pagar sozinho. Mas você pode pagar sentado, que já é um avanço."
+      ],
+      autocuidado: [
+        "Descansar também é produtividade, só que sem gerar uma apresentação sobre isso.",
+        "Beba água. Seu corpo é praticamente uma planta com problemas para nomear sentimentos.",
+        "Você merece limites. Inclusive com aquela pessoa que manda áudio de sete minutos.",
+        "Um banho e um lanche não resolvem tudo. Mas resolvem a parte de estar com fome e triste no chuveiro.",
+        "Não precisa florescer hoje. Sobreviver sem mandar mensagem pro ex já conta como jardinagem.",
+        "Se tratar com carinho não é passar pano. É parar de ser seu próprio gerente tóxico."
+      ],
+      segunda: [
+        "A semana está só começando. Infelizmente, ela sabe disso e tem agenda cheia.",
+        "Segunda-feira é só um domingo com consequências. Vá com calma.",
+        "Você chegou até aqui em todas as segundas anteriores. Estatisticamente, isso é um bom sinal.",
+        "Não tente vencer a semana inteira hoje. Ela tem cinco dias e você, um café.",
+        "O despertador tocou e você levantou. A barra está baixa, mas você passou.",
+        "Mais uma semana, mais uma chance de fingir surpresa com os compromissos recorrentes."
+      ],
+      coragem: [
+        "Vai com medo mesmo. Ele não paga aluguel para escolher onde você pode ir.",
+        "Você não precisa estar pronto. Ninguém está; alguns só têm uma pasta chamada final_final_agora-vai.",
+        "Faça a coisa difícil. Depois você pode reclamar com propriedade.",
+        "A confiança vem depois. Primeiro vem você clicando em enviar e fechando o notebook.",
+        "Se der errado, vira aprendizado. Se der certo, você sempre soube que ia dar certo.",
+        "Um passo pequeno ainda é um passo. Até porque tentar dar um salto com essa lombar seria irresponsável."
+      ]
+    };
+
+    const categorySelect = document.querySelector("#category");
+    const quoteElement = document.querySelector("#quote");
+    const numberElement = document.querySelector("#quote-number");
+    const favoriteButton = document.querySelector("#favorite");
+    const favoriteCount = document.querySelector("#favorite-count");
+    const savedItems = document.querySelector("#saved-items");
+    const statusElement = document.querySelector("#status");
+    let currentQuote = "Você não precisa ter tudo sob controle. Olha só: ninguém tem.";
+    let currentKey = "intro";
+    let lastQuote = currentQuote;
+    let quoteNumber = 1;
+    let favorites = loadFavorites();
+
+    function loadFavorites() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("frases-favoritas") || "[]");
+        return Array.isArray(saved) ? saved : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveFavorites() {
+      try {
+        localStorage.setItem("frases-favoritas", JSON.stringify(favorites));
+      } catch {
+        showStatus("Não foi possível salvar neste navegador.");
+      }
+      favoriteCount.textContent = String(favorites.length);
+      renderSaved();
+    }
+
+    function showStatus(message) {
+      statusElement.textContent = message;
+      window.clearTimeout(showStatus.timeout);
+      showStatus.timeout = window.setTimeout(() => { statusElement.textContent = ""; }, 2200);
+    }
+
+    function renderFavorite() {
+      const isFavorite = favorites.some((item) => item.text === currentQuote);
+      favoriteButton.setAttribute("aria-pressed", String(isFavorite));
+      favoriteButton.setAttribute("aria-label", isFavorite ? "Remover frase dos salvos" : "Salvar frase");
+      favoriteButton.title = isFavorite ? "Remover dos salvos" : "Salvar frase";
+      favoriteButton.style.backgroundColor = isFavorite ? "rgb(255 255 255 / 38%)" : "transparent";
+    }
+
+    function renderSaved() {
+      savedItems.replaceChildren();
+      for (const item of favorites) {
+        const listItem = document.createElement("li");
+        listItem.append(document.createTextNode(item.text));
+        const category = document.createElement("span");
+        category.className = "saved-category";
+        category.textContent = item.category === "intro" ? "Geral" : item.category;
+        listItem.append(category);
+        savedItems.append(listItem);
+      }
+      if (favorites.length === 0) {
+        const emptyItem = document.createElement("li");
+        emptyItem.textContent = "Ainda não há frases salvas.";
+        savedItems.append(emptyItem);
+      }
+    }
+
+    function generateQuote() {
+      const selectedCategory = categorySelect.value;
+      const categories = selectedCategory === "all" ? Object.keys(phrases) : [selectedCategory];
+      const choices = categories.flatMap((key) => phrases[key].map((text) => ({ key, text })));
+      const available = choices.filter((item) => item.text !== lastQuote);
+      const next = (available.length ? available : choices)[Math.floor(Math.random() * (available.length || choices.length))];
+
+      currentQuote = next.text;
+      currentKey = next.key;
+      lastQuote = currentQuote;
+      quoteNumber += 1;
+      quoteElement.textContent = currentQuote;
+      numberElement.textContent = `#${String(quoteNumber).padStart(2, "0")}`;
+      document.querySelector(".quote-card").animate(
+        [{ opacity: 0.45, transform: "translateY(5px)" }, { opacity: 1, transform: "translateY(0)" }],
+        { duration: 260, easing: "ease-out" }
+      );
+      renderFavorite();
+      showStatus("");
+    }
+
+    categorySelect.addEventListener("change", generateQuote);
+    document.querySelector("#generate").addEventListener("click", generateQuote);
+
+    favoriteButton.addEventListener("click", () => {
+      const existingIndex = favorites.findIndex((item) => item.text === currentQuote);
+      if (existingIndex >= 0) {
+        favorites.splice(existingIndex, 1);
+        showStatus("Frase removida dos salvos.");
+      } else {
+        favorites.push({ text: currentQuote, category: currentKey });
+        showStatus("Frase salva. Bom gosto, apesar de tudo.");
+      }
+      saveFavorites();
+      renderFavorite();
+    });
+
+    document.querySelector("#copy").addEventListener("click", async () => {
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(currentQuote);
+        } else {
+          const textArea = document.createElement("textarea");
+          textArea.value = currentQuote;
+          textArea.style.position = "fixed";
+          textArea.style.opacity = "0";
+          document.body.append(textArea);
+          textArea.select();
+          const copied = document.execCommand("copy");
+          textArea.remove();
+          if (!copied) throw new Error("cópia indisponível");
+        }
+        showStatus("Frase copiada.");
+      } catch {
+        showStatus("Não foi possível copiar. Tente selecionar a frase.");
+      }
+    });
+
+    favoriteCount.textContent = String(favorites.length);
+  renderSaved();
+    renderFavorite();
+  </script>
+</body>
+</html>
